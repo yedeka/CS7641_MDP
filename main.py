@@ -13,7 +13,7 @@ import hiive_openAI_extract
 def performFrozenLakeExperiment():
     print("Perfroming Frozen Lake Experiment")
 
-    '''openai_int = hiive_openAI_extract.OpenAI_MDPToolbox('FrozenLake-v0', True)
+    openai_int = hiive_openAI_extract.OpenAI_MDPToolbox('FrozenLake-v0', True)
     states_small = openai_int.P
     rewards_small = openai_int.R
     random_map = generate_random_map(size=20, p=0.8)
@@ -154,88 +154,7 @@ def performFrozenLakeExperiment():
     plt.grid()
     plt.legend()
     plt.savefig('Frozen_Lake_pi_reward')
-    plt.clf()'''
-
-    # Q learning for frozen lake
-    print('Q LEARNING WITH FROZEN LAKE')
-    environment = 'FrozenLake-v0'
-    env = gym.make(environment)
-    env = env.unwrapped
-    desc = env.unwrapped.desc
-
-    st = time.time()
-    reward_array = []
-    iter_array = []
-    size_array = []
-    chunks_array = []
-    averages_array = []
-    time_array = []
-    Q_array = []
-    epsilon_values = [0.05, 0.15, 0.25, 0.5, 0.75, 0.95]
-
-    st = time.time()
-    for epsilon in [0.05, 0.15, 0.25, 0.5, 0.75, 0.90]:
-        Q = np.zeros((env.observation_space.n, env.action_space.n))
-        rewards = []
-        iters = []
-        optimal = [0] * env.observation_space.n
-        alpha = 0.85
-        gamma = 0.95
-        episodes = 30000
-        environment = 'FrozenLake-v0'
-        env = gym.make(environment)
-        env = env.unwrapped
-        desc = env.unwrapped.desc
-        for episode in range(episodes):
-            state = env.reset()
-            done = False
-            t_reward = 0
-            max_steps = 1000000
-            for i in range(max_steps):
-                if done:
-                    break
-                current = state
-                if np.random.rand() < (epsilon):
-                    action = np.argmax(Q[current, :])
-                else:
-                    action = env.action_space.sample()
-
-                state, reward, done, info = env.step(action)
-                t_reward += reward
-                Q[current, action] += alpha * (reward + gamma * np.max(Q[state, :]) - Q[current, action])
-            epsilon = (1 - 2.71 ** (-episode / 1000))
-            rewards.append(t_reward)
-            iters.append(i)
-
-        for k in range(env.observation_space.n):
-            optimal[k] = np.argmax(Q[k, :])
-
-        reward_array.append(rewards)
-        iter_array.append(iters)
-        Q_array.append(Q)
-
-        env.close()
-        end = time.time()
-        # print("time :",end-st)
-        time_array.append(end - st)
-
-        # Plot results
-        def chunk_list(l, n):
-            for i in range(0, len(l), n):
-                yield l[i:i + n]
-
-        size = int(episodes / 50)
-        chunks = list(chunk_list(rewards, size))
-        averages = [sum(chunk) / len(chunk) for chunk in chunks]
-        size_array.append(size)
-        chunks_array.append(chunks)
-        averages_array.append(averages)
-
-        print(size_array)
-        print(chunks_array)
-        print(averages_array)
-
-
+    plt.clf()
 
 def performForestExperiment():
         ''' T - State Transition Matrix (S,a,S') i.e. probability of transitioning from state to state given an action is taken
@@ -262,7 +181,7 @@ def performForestExperiment():
         T_Small, R_Small = hiive.mdptoolbox.example.forest(S=small_size)
 
         # Perform Value iteration for smaller size
-        for i in range(0, iterations):
+        '''for i in range(0, iterations):
             vi_small =  hiive.mdptoolbox.mdp.ValueIteration(T_Small, R_Small, (i+0.5)/iterations, epsilon=0.1)
             vi_small.run()
             value_f_small[i] = np.mean(vi_small.V)
@@ -387,7 +306,7 @@ def performForestExperiment():
         plt.grid()
         plt.legend()
         plt.savefig('Forest_pi_convergence_iters')
-        plt.clf()
+        plt.clf()'''
 
         # Perform Q learning
         print('Q LEARNING WITH FOREST MANAGEMENT')
@@ -420,6 +339,28 @@ def performForestExperiment():
 
         print(time_array_large)
         print(reward_large)
+
+        plt.plot(alpha_values, reward_small, label='10 states')
+        plt.plot(alpha_values, reward_large, label='1000 states')
+        plt.xlabel('Alpha')
+        plt.ylabel('Reward')
+        plt.title('MDP Forest - Q Learning - Reward plot')
+        plt.grid()
+        plt.legend()
+        plt.savefig('Forest_ql_reward')
+        plt.clf()
+
+        plt.plot(alpha_values, time_array_small, label='10 states')
+        plt.plot(alpha_values, time_array_large, label='1000 states')
+        plt.xlabel('Alpha')
+        plt.ylabel('Time to coverge')
+        plt.title('MDP Forest - Q Learning - Time plot')
+        plt.grid()
+        plt.legend()
+        plt.savefig('Forest_ql_time')
+        plt.clf()
+
+
 
 if __name__ == '__main__':
     performForestExperiment()
