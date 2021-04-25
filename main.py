@@ -1,3 +1,5 @@
+import time
+
 import hiive.mdptoolbox
 import hiive.mdptoolbox.mdp
 import hiive.mdptoolbox.example
@@ -86,6 +88,74 @@ def performFrozenLakeExperiment():
     plt.legend()
     plt.savefig('Frozen_Lake_vi_reward')
     plt.clf()
+
+    value_f_small = [0] * iterations
+    iters_small = [0] * iterations
+    time_array_small = [0] * iterations
+    gamma_arr = [0] * iterations
+
+    value_f_large = [0] * iterations
+    iters_large = [0] * iterations
+    time_array_large = [0] * iterations
+
+    # Perform Policy iteration for smaller size
+    for i in range(0, iterations):
+        pi_small = hiive.mdptoolbox.mdp.PolicyIterationModified(states_small, rewards_small, (i + 0.5) / iterations, epsilon=0.1)
+        pi_small.run()
+        value_f_small[i] = np.mean(pi_small.V)
+        iters_small[i] = pi_small.iter
+        time_array_small[i] = pi_small.time
+
+        # Perform Value iteration for larger size
+        pi_large = hiive.mdptoolbox.mdp.PolicyIterationModified(states_large, rewards_large, (i + 0.5) / iterations, epsilon=0.1)
+        pi_large.run()
+        value_f_large[i] = np.mean(pi_large.V)
+        iters_large[i] = pi_large.iter
+        time_array_large[i] = pi_large.time
+
+        gamma_arr[i] = (i + 0.5) / iterations
+
+    print("Policy Iteration Less states")
+    print(value_f_small)
+    print(iters_small)
+    print(time_array_small)
+
+    print("Policy Iteration Large states")
+    print(value_f_large)
+    print(iters_large)
+    print(time_array_large)
+
+    plt.plot(gamma_arr, iters_small, label=' 16 states')
+    plt.plot(gamma_arr, iters_large, label=' 900 states')
+    plt.xlabel('Gamma')
+    plt.ylabel('Convergence')
+    plt.title('MDP Frozen Lake - Policy Iteration - Convergence plot')
+    plt.grid()
+    plt.legend()
+    plt.savefig('Frozen_Lake_pi_convergence_iters')
+    plt.clf()
+
+    plt.plot(gamma_arr, time_array_small, label='16 states')
+    plt.plot(gamma_arr, time_array_large, label='900 states')
+    plt.xlabel('Gamma')
+    plt.title('MDP Frozen Lake - Policy Iteration - Execution Time plot')
+    plt.ylabel('Execution Time')
+    plt.grid()
+    plt.legend()
+    plt.savefig('Frozen_Lake_pi_time')
+    plt.clf()
+
+    plt.plot(gamma_arr, value_f_small, label='16 states')
+    plt.plot(gamma_arr, value_f_large, label='900 states')
+    plt.xlabel('Gamma')
+    plt.ylabel('Mean Rewards')
+    plt.title('MDP Frozen Lake - Policy Iteration - Reward plot')
+    plt.grid()
+    plt.legend()
+    plt.savefig('Frozen_Lake_pi_reward')
+    plt.clf()
+
+
 
 
 def performForestExperiment():
@@ -240,6 +310,41 @@ def performForestExperiment():
         plt.legend()
         plt.savefig('Forest_pi_convergence_iters')
         plt.clf()
+
+        # Perform Q learning
+        print('Q LEARNING WITH FOREST MANAGEMENT')
+        time_array_small = []
+        Q_table_small = []
+        time_array_large = []
+        Q_table_large = []
+        alpha_values = [0.05, 0.15, 0.25, 0.5, 0.75, 0.95]
+        np.random.seed(100)
+        for alpha in alpha_values:
+            ql = hiive.mdptoolbox.mdp.QLearning(T_Small, R_Small, 0.95,alpha_min=alpha)
+            st = time.time()
+            ql.run()
+            end = time.time()
+            time_array_small.append(end - st)
+            Q_table_small.append(np.max(ql.Q))
+
+            ql_large = hiive.mdptoolbox.mdp.QLearning(T_Large, R_Large, 0.95, alpha_min=alpha)
+            st_large = time.time()
+            ql_large.run()
+            end_large = time.time()
+            time_array_large.append(end_large - st_large)
+            Q_table_large.append(np.max(ql_large.Q))
+
+
+        print(alpha_values)
+
+        print(time_array_small)
+        print(Q_table_small)
+
+        print(time_array_large)
+        print(Q_table_large)
+
+
+
 
 if __name__ == '__main__':
     #performForestExperiment()
