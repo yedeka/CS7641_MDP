@@ -6,14 +6,71 @@ import hiive.mdptoolbox.mdp
 import hiive.mdptoolbox.example
 import numpy as np
 import matplotlib.pyplot as plt
-
 from gym.envs.toy_text.frozen_lake import generate_random_map
 import hiive_openAI_extract
+
+
+def performflQl(env):
+    print('Q LEARNING FOR FROZEN LAKE')
+    start = time.time()
+    rewards_list = []
+    iterations_list = []
+    time_array = []
+    alpha_array = [0.1, 0.3, 0.5, 0.7, 0.9, 0.95]
+
+    np.random.seed(500)
+
+    for alpha in alpha_array:
+        Q = np.zeros((env.observation_space.n, env.action_space.n))
+        rewards = []
+        iters = []
+        gamma = 0.95
+        episodes = 25000
+        epsilon = 1.0
+
+        for episode in range(episodes):
+            state = env.reset()
+            complete = False
+            total_reward = 0
+            max_steps = 1000000
+            for i in range(max_steps):
+                if complete:
+                    break
+                current = state
+                if np.random.rand() < (epsilon):
+                    action = np.argmax(Q[current, :])
+                else:
+                    action = env.action_space.sample()
+
+                state, reward, complete, info = env.step(action)
+                total_reward += reward
+                Q[current, action] += alpha * (reward + gamma * np.max(Q[state, :]) - Q[current, action])
+            epsilon = (1 - 2.71 ** (-episode / 1000))
+            rewards.append(total_reward)
+            iters.append(i)
+
+        rewards_list.append(np.mean(rewards))
+        iterations_list.append(np.mean(iters))
+        end = time.time()
+        time_array.append(end - start)
+
+    env.close()
+
+    stats  = {
+        "rewards": rewards_list,
+        "iterations": iterations_list,
+        "time" : time_array
+    }
+    return stats
+    '''print("rewards_list",rewards_list)
+    print("iterations_list", iterations_list)
+    print("time array", time_array)'''
+
 
 def performFrozenLakeExperiment():
     print("Perfroming Frozen Lake Experiment")
 
-    openai_int = hiive_openAI_extract.OpenAI_MDPToolbox('FrozenLake-v0', True)
+    '''openai_int = hiive_openAI_extract.OpenAI_MDPToolbox('FrozenLake-v0', True)
     states_small = openai_int.P
     rewards_small = openai_int.R
     random_map = generate_random_map(size=20, p=0.8)
@@ -154,6 +211,49 @@ def performFrozenLakeExperiment():
     plt.grid()
     plt.legend()
     plt.savefig('Frozen_Lake_pi_reward')
+    plt.clf()'''
+
+    # Perform Q Learning
+    alpha_array = [0.1, 0.3, 0.5, 0.7, 0.9, 0.95]
+    environment_small = 'FrozenLake-v0'
+    env = gym.make(environment_small)
+    env = env.unwrapped
+    plot_data_small = performflQl(env)
+    print(plot_data_small)
+    environment_large = 'FrozenLake-v0'
+    random_map = generate_random_map(size=20, p=0.8)
+    env_large = gym.make(environment_large, desc=random_map)
+    env_large = env_large.unwrapped
+    plot_data_large = performflQl(env_large)
+    print(plot_data_large)
+    plt.plot(alpha_array, plot_data_small["iterations"], label='16 states')
+    plt.plot(alpha_array, plot_data_large["iterations"], label='400 states')
+    plt.xlabel('Alpha')
+    plt.ylabel('Convergence Iterations')
+    plt.title('MDP Frozen Lake - Q Learning - Convergence plot')
+    plt.grid()
+    plt.legend()
+    plt.savefig('Frozen_Lake_qi_convergence_iters')
+    plt.clf()
+
+    plt.plot(alpha_array, plot_data_small["time"], label='16 states')
+    plt.plot(alpha_array, plot_data_large["time"], label='400 states')
+    plt.xlabel('Alpha')
+    plt.ylabel('Convergence Time')
+    plt.title('MDP Frozen Lake - Q Learning - Time plot')
+    plt.grid()
+    plt.legend()
+    plt.savefig('Frozen_Lake_qi_Time')
+    plt.clf()
+
+    plt.plot(alpha_array, plot_data_small["rewards"], label='16 states')
+    plt.plot(alpha_array, plot_data_large["rewards"], label='400 states')
+    plt.xlabel('Alpha')
+    plt.ylabel('Rewards')
+    plt.title('MDP Frozen Lake - Q Learning - Rewards plot')
+    plt.grid()
+    plt.legend()
+    plt.savefig('Frozen_Lake_qi_Rewards')
     plt.clf()
 
 def performForestExperiment():
@@ -181,7 +281,7 @@ def performForestExperiment():
         T_Small, R_Small = hiive.mdptoolbox.example.forest(S=small_size)
 
         # Perform Value iteration for smaller size
-        '''for i in range(0, iterations):
+        for i in range(0, iterations):
             vi_small =  hiive.mdptoolbox.mdp.ValueIteration(T_Small, R_Small, (i+0.5)/iterations, epsilon=0.1)
             vi_small.run()
             value_f_small[i] = np.mean(vi_small.V)
@@ -306,7 +406,7 @@ def performForestExperiment():
         plt.grid()
         plt.legend()
         plt.savefig('Forest_pi_convergence_iters')
-        plt.clf()'''
+        plt.clf()
 
         # Perform Q learning
         print('Q LEARNING WITH FOREST MANAGEMENT')
@@ -323,6 +423,7 @@ def performForestExperiment():
             end = time.time()
             time_array_small.append(end - st)
             reward_small.append(np.max(ql.V))
+            print(ql.run_stats)
 
             ql_large = hiive.mdptoolbox.mdp.QLearning(T_Large, R_Large, 0.95, alpha_min=alpha)
             st_large = time.time()
@@ -331,12 +432,10 @@ def performForestExperiment():
             time_array_large.append(end_large - st_large)
             reward_large.append(np.max(ql_large.V))
 
-
         print(alpha_values)
 
         print(time_array_small)
         print(reward_small)
-
         print(time_array_large)
         print(reward_large)
 
@@ -360,8 +459,6 @@ def performForestExperiment():
         plt.savefig('Forest_ql_time')
         plt.clf()
 
-
-
 if __name__ == '__main__':
-    performForestExperiment()
-    #performFrozenLakeExperiment()
+    #performForestExperiment()
+    performFrozenLakeExperiment()
