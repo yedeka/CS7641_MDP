@@ -11,7 +11,7 @@ environment setup -
 	conda env create --file <Path_to_environment.yml>
 	conda activate ml
 	pip install hiive-mdp
-	pip install mdp
+	pip install mdptoolbox
 4] Please install pycharm. 
 5] Create a new project by importing the source code from git repo.
 6] Selected existing python interpreter from the conda environment to be used within pycharm so that all the dependencies for the project will be automatically made available.
