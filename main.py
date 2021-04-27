@@ -70,7 +70,7 @@ def performflQl(env):
 def performFrozenLakeExperiment():
     print("Perfroming Frozen Lake Experiment")
 
-    '''openai_int = hiive_openAI_extract.OpenAI_MDPToolbox('FrozenLake-v0', True)
+    openai_int = hiive_openAI_extract.OpenAI_MDPToolbox('FrozenLake-v0', True)
     states_small = openai_int.P
     rewards_small = openai_int.R
     random_map = generate_random_map(size=20, p=0.8)
@@ -211,7 +211,7 @@ def performFrozenLakeExperiment():
     plt.grid()
     plt.legend()
     plt.savefig('Frozen_Lake_pi_reward')
-    plt.clf()'''
+    plt.clf()
 
     # Perform Q Learning
     alpha_array = [0.1, 0.3, 0.5, 0.7, 0.9, 0.95]
@@ -460,5 +460,5 @@ def performForestExperiment():
         plt.clf()
 
 if __name__ == '__main__':
-    #performForestExperiment()
+    performForestExperiment()
     performFrozenLakeExperiment()
